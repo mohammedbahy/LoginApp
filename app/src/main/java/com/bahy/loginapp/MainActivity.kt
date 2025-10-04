@@ -10,17 +10,20 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,6 +46,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun LoginDesign(modifier: Modifier = Modifier) {
     var emailText by remember { mutableStateOf("") }
+    val uriHandler = LocalUriHandler.current
 
     Column(
         modifier = modifier
@@ -91,7 +95,9 @@ fun LoginDesign(modifier: Modifier = Modifier) {
                 focusedBorderColor = Color(0xFF1A73E8),
                 unfocusedBorderColor = Color(0xFFDADCE0),
                 focusedLabelColor = Color(0xFF1A73E8),
-                unfocusedLabelColor = Color(0xFF5F6368)
+                unfocusedLabelColor = Color(0xFF5F6368),
+                focusedTextColor = Color(0xFF202124),
+                unfocusedTextColor = Color(0xFF202124)
             ),
             singleLine = true
         )
@@ -110,17 +116,38 @@ fun LoginDesign(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(24.dp))
 
         // Info text
-        Text(
-            text = buildAnnotatedString {
-                withStyle(style = SpanStyle(color = Color(0xFF5F6368))) {
-                    append("Not your computer? Use Private Browsing windows to sign in. ")
+        val annotatedText = buildAnnotatedString {
+            withStyle(style = SpanStyle(color = Color(0xFF5F6368))) {
+                append("Not your computer? Use Private Browsing windows to sign in. ")
+            }
+            pushStringAnnotation(
+                tag = "URL",
+                annotation = "https://support.google.com/chrome/answer/6130773?hl=en&sjid=16122185504707916852-EU"
+            )
+            withStyle(style = SpanStyle(
+                color = Color(0xFF1A73E8),
+                textDecoration = TextDecoration.None
+            )) {
+                append("Learn more about using Guest mode")
+            }
+            pop()
+        }
+
+        ClickableText(
+            text = annotatedText,
+            style = LocalTextStyle.current.copy(
+                fontSize = 14.sp,
+                lineHeight = 20.sp
+            ),
+            onClick = { offset ->
+                annotatedText.getStringAnnotations(
+                    tag = "URL",
+                    start = offset,
+                    end = offset
+                ).firstOrNull()?.let { annotation ->
+                    uriHandler.openUri(annotation.item)
                 }
-                withStyle(style = SpanStyle(color = Color(0xFF1A73E8))) {
-                    append("Learn more about using Guest mode")
-                }
-            },
-            fontSize = 14.sp,
-            lineHeight = 20.sp
+            }
         )
 
         Spacer(modifier = Modifier.weight(1f))
